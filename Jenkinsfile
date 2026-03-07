@@ -35,7 +35,7 @@ pipeline {
             steps {
                 script {
 
-                    if (!DOCKER_IMAGE_NAME) {
+                    if (docker_image_name != "frontend" || docker_image_name != "backend") {
                         echo "No directories changed"
                         return
                     }
