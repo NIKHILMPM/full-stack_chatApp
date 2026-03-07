@@ -24,3 +24,26 @@ dist-ssr
 *.sw?
 
 .env
+.docker-compose.yaml.swp# env
+.env
+.env.*
+
+# node
+node_modules/
+
+# logs
+*.log
+
+# editor temp
+*.swp
+
+# terraform
+.terraform/
+*.tfstate*
+
+# kubernetes secrets
+k8s/*secret*
+
+# OS
+.DS_Store
+Thumbs.db

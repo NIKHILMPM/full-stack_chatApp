@@ -1,58 +1,61 @@
+version: "3.8"
+
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "8080:80"
-    depends_on:
-      - backend
+
+  mongodb:
+    image: mongo
     networks:
       - chat-network
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
     environment:
-      - BACKEND_URL=http://backend:5001
-    restart: unless-stopped
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    restart: always
+
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    networks:
+      - chat-network
     ports:
       - "5001:5001"
-    depends_on:
-      - mongo
-    env_file:
-      - .env
-    networks:
-      - chat-network
-    restart: unless-stopped
-
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=admin
-    volumes:
-      - mongodb_data:/data/db
+      - MONGODB_URI=mongodb://root:admin@mongodb:27017/dbname?authSource=admin
+      - PORT=5001
+      - JWT_SECRET=my_jwt_secret_key
+      - NODE_ENV=production
+    restart: always
+
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     networks:
       - chat-network
-    restart: unless-stopped
+    ports:
+      - "8081:80"
+    restart: always
+
+    depends_on:
+      - backend
+
+volumes:
+  mongodb-data:
 
 networks:
   chat-network:
-    driver: bridge
-
-volumes:
-  mongodb_data:
-
-
-
-
-
-
-
-
-
-
