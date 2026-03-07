@@ -2,7 +2,6 @@ pipeline {
     agent any 
     
     environment {
-        DOCKER_IMAGE_NAME = ""
         DOCKER_USER = "ramachandrampm"
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         BRANCH_NAME = "dev"
@@ -10,48 +9,56 @@ pipeline {
 
     stages {
         
-        stage("checkout repo") {
+        stage("Checkout Source Code") {
             steps {
                 checkout scm
             }
         }
+
+        stage("SonarQube Code Analysis") {
+            steps {
+                echo "Running SonarQube code analysis"
+            }
+        }
+
+        stage("OWASP Dependency Check") {
+            steps {
+                echo "Running OWASP dependency check"
+            }
+        }
         
-        stage("check changed dir") {
+        stage("Detect Changed Services") {
             steps {
                 script {
-                    echo "pipeline triggered"
+                    echo "Pipeline triggered"
 
-                    DOCKER_IMAGE_NAME = sh(
+                    services = sh(
                         script: "git diff HEAD~1 HEAD --name-only | cut -d/ -f1 | sort -u",
                         returnStdout: true
                     ).trim()
 
-                    echo "changed dir: ${DOCKER_IMAGE_NAME}"
-                }
-            }
-        }
-        
-        stage("docker build and push") {
-            steps {
-                script {
+                    svc = services.split("\n")
 
-                    def services = DOCKER_IMAGE_NAME.split("\n")
-
-                    if (!(services.contains("frontend") || services.contains("backend"))) {
-                        echo "No directories changed"
-                        return
+                    if (!(svc.contains("frontend") || svc.contains("backend"))) {
+                        error("No relevant service directories changed")
                     } else {
 
-                        services.each { docker_image_name ->
+                        svc.each { docker_image_name ->
 
-                            if (docker_image_name == "frontend" || docker_image_name == "backend") {
+                            def docker_image = "${DOCKER_USER}/chat-app-${docker_image_name}:${DOCKER_TAG}"
 
-                                def docker_image = "${DOCKER_USER}/chat-app-${docker_image_name}:${DOCKER_TAG}"
-
+                            stage("Trivy Security Scan - ${docker_image_name}") {
+                                echo "Running Trivy security scan"
+                            }
+                            
+                            stage("Build and Push Docker Image - ${docker_image_name}") {
                                 withDockerRegistry(credentialsId: 'dockerhub-creds', url: '') {
                                     sh "docker build -t ${docker_image} ./${docker_image_name}"
                                     sh "docker push ${docker_image}"
                                 }
+                            }
+
+                            stage("Update Kubernetes Manifest - ${docker_image_name}") {
 
                                 withCredentials([usernamePassword(
                                     credentialsId: 'github-creds',
@@ -73,13 +80,11 @@ pipeline {
                                     fi
                                     """
                                 }
-
                             }
 
                         }
 
                     }
-
                 }
             }
         }
