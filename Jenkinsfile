@@ -35,43 +35,45 @@ pipeline {
             steps {
                 script {
 
-                    if (docker_image_name != "frontend" || docker_image_name != "backend") {
-                        echo "No directories changed"
-                        return
-                    }
-
                     def services = DOCKER_IMAGE_NAME.split("\n")
 
-                    services.each { docker_image_name ->
+                    if (!(services.contains("frontend") || services.contains("backend"))) {
+                        echo "No directories changed"
+                        return
+                    } else {
 
-                        if (docker_image_name == "frontend" || docker_image_name == "backend") {
+                        services.each { docker_image_name ->
 
-                            def docker_image = "${DOCKER_USER}/chat-app-${docker_image_name}:${DOCKER_TAG}"
+                            if (docker_image_name == "frontend" || docker_image_name == "backend") {
 
-                            withDockerRegistry(credentialsId: 'dockerhub-creds', url: '') {
-                                sh "docker build -t ${docker_image} ./${docker_image_name}"
-                                sh "docker push ${docker_image}"
-                            }
+                                def docker_image = "${DOCKER_USER}/chat-app-${docker_image_name}:${DOCKER_TAG}"
 
-                            withCredentials([usernamePassword(
-                                credentialsId: 'github-creds',
-                                usernameVariable: 'GIT_USERNAME',
-                                passwordVariable: 'GIT_TOKEN'
-                            )]) {
+                                withDockerRegistry(credentialsId: 'dockerhub-creds', url: '') {
+                                    sh "docker build -t ${docker_image} ./${docker_image_name}"
+                                    sh "docker push ${docker_image}"
+                                }
 
-                                sh """
-                                git config user.name "jenkins"
-                                git config user.email "jenkins@ci.com"
+                                withCredentials([usernamePassword(
+                                    credentialsId: 'github-creds',
+                                    usernameVariable: 'GIT_USERNAME',
+                                    passwordVariable: 'GIT_TOKEN'
+                                )]) {
 
-                                sed -i "s|image:.*|image:${docker_image}|g" k8s/${docker_image_name}-manifest.yaml
+                                    sh """
+                                    git config user.name "jenkins"
+                                    git config user.email "jenkins@ci.com"
 
-                                git add k8s/${docker_image_name}-manifest.yaml
+                                    sed -i "s|image:.*|image:${docker_image}|g" k8s/${docker_image_name}-manifest.yaml
 
-                                if ! git diff --cached --quiet; then
-                                    git commit -m "update ${docker_image_name} image to ${docker_image}"
-                                    git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/NIKHILMPM/full-stack_chatApp.git HEAD:${BRANCH_NAME}
-                                fi
-                                """
+                                    git add k8s/${docker_image_name}-manifest.yaml
+
+                                    if ! git diff --cached --quiet; then
+                                        git commit -m "update ${docker_image_name} image to ${docker_image}"
+                                        git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/NIKHILMPM/full-stack_chatApp.git HEAD:${BRANCH_NAME}
+                                    fi
+                                    """
+                                }
+
                             }
 
                         }
