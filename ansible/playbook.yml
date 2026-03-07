@@ -1,0 +1,13 @@
+---
+- name: Installing necessary sw on servers
+  hosts: servers
+  become: yes
+
+  roles:
+    - docker
+    - jenkins
+    - kind
+    - kubectl
+    - helm
+    - kind-k8s-addons
+    - devsecops-addons

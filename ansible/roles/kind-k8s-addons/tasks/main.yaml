@@ -1,0 +1,79 @@
+---
+############################
+# Install NGINX Ingress
+############################
+
+- name: Install NGINX Ingress for kind
+  command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+  register: ingress_install
+
+- name: Wait for ingress controller to be ready
+  command: kubectl wait --namespace ingress-nginx \
+           --for=condition=ready pod \
+           --selector=app.kubernetes.io/component=controller \
+           --timeout=180s
+
+
+############################
+# Install Metrics Server
+############################
+
+- name: Install Metrics Server
+  command: kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+- name: Patch Metrics Server for kind
+  shell: |
+    kubectl patch deployment metrics-server -n kube-system \
+    --type=json \
+    -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+
+- name: Wait for metrics server
+  command: kubectl rollout status deployment metrics-server -n kube-system
+
+
+############################
+# Install Vertical Pod Autoscaler
+############################
+
+- name: Clone Kubernetes autoscaler repository
+  git:
+    repo: https://github.com/kubernetes/autoscaler.git
+    dest: /tmp/autoscaler
+    update: yes
+
+- name: Install Vertical Pod Autoscaler
+  shell: ./hack/vpa-up.sh
+  args:
+    chdir: /tmp/autoscaler/vertical-pod-autoscaler
+
+
+############################
+# Install Argo CD
+############################
+
+- name: Create ArgoCD namespace
+  command: kubectl create namespace argocd
+  ignore_errors: yes
+
+- name: Install ArgoCD
+  command: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.11.4/manifests/install.yaml
+
+- name: Wait for ArgoCD server
+  command: kubectl rollout status deployment argocd-server -n argocd
+
+
+############################
+# Install Prometheus + Grafana
+############################
+
+- name: Add Prometheus Helm repo
+  command: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+- name: Update Helm repos
+  command: helm repo update
+
+- name: Install kube-prometheus-stack
+  command: >
+    helm upgrade --install monitoring prometheus-community/kube-prometheus-stack
+    --namespace monitoring
+    --create-namespace

@@ -1,0 +1,38 @@
+- name: Run SonarQube container
+  docker_container:
+    name: sonarqube-server
+    image: sonarqube:lts-community
+    state: started
+    ports:
+      - "9000:9000"
+
+- name: Install dependencies for Trivy
+  apt:
+    name:
+      - wget
+      - apt-transport-https
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: yes
+
+- name: Add Trivy GPG key
+  shell: |
+    wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
+    | gpg --dearmor \
+    | tee /usr/share/keyrings/trivy.gpg > /dev/null
+
+- name: Add Trivy repository
+  shell: |
+    echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] \
+    https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" \
+    | tee /etc/apt/sources.list.d/trivy.list
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install Trivy
+  apt:
+    name: trivy
+    state: present
