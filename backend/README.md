@@ -1,1 +1,1 @@
-this is code for backend
+Backend code for Chat-app
