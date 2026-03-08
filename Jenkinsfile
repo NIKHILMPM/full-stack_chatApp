@@ -85,6 +85,7 @@ pipeline {
 
                             stage("Trivy Security Scan - ${docker_image_name}") {
                                 echo 'Running Trivy security scan'
+                                sh "trivy fs --format table -o trivy-fs-report.txt ./${docker_image_name}"
                             }
 
                             stage("Build and Push Docker Image - ${docker_image_name}") {
