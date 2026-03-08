@@ -16,6 +16,23 @@ pipeline {
             }
         }
 
+        stage("Skip CI if requested") {
+            steps {
+                script {
+                    def commitMsg = sh(
+                        script: "git log -1 --pretty=%B",
+                        returnStdout: true
+                    ).trim()
+
+                    if (commitMsg.contains("[skip ci]")) {
+                        echo "Stopping the pipeline because commit contains [skip ci]"
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    }
+                }
+            }
+        }
+
         stage("SonarQube Code Analysis") {
             steps {
                 echo "Running SonarQube code analysis"
