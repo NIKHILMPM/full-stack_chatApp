@@ -76,7 +76,7 @@ pipeline {
                                     git add k8s/${docker_image_name}-manifest.yaml
 
                                     if ! git diff --cached --quiet; then
-                                        git commit -m " [skip ci] update ${docker_image_name} image to ${docker_image}"
+                                        git commit -m "[skip ci] update ${docker_image_name} image to ${docker_image}"
                                         git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/NIKHILMPM/full-stack_chatApp.git HEAD:${BRANCH_NAME}
                                     fi
                                     """
