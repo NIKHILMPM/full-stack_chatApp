@@ -122,7 +122,7 @@ It is designed to rebuild and deploy **only the services that were modified**, i
 10. **GitOps Deployment via ArgoCD**
     Since ArgoCD continuously monitors the repository, it detects the manifest change and automatically **synchronizes the Kubernetes cluster**, deploying the new container image.
 
-This pipeline creates an **efficient DevSecOps workflow**, ensuring that every change goes through **code analysis, vulnerability scanning, containerization, and automated Kubernetes deployment**.
+This pipeline creates an efficient DevSecOps workflow, ensuring that every change goes through code analysis, vulnerability scanning, containerization, and automated Kubernetes deployment.
 ---
 
 # 5. DevSecOps Security Scanning
