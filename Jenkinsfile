@@ -24,7 +24,9 @@ pipeline {
 
                     if (isManual) {
                         echo 'Manual build detected'
-                        svc = []   // manual build will allow later logic
+                        svc = ['frontend', 'backend']
+                    }else {
+                        svc = []
                     }
                 }
             }
@@ -33,9 +35,7 @@ pipeline {
         stage('checking if any changes were made in main code') {
             steps {
                 script {
-
                     if (svc.isEmpty()) {
-
                         def services = sh(
                             script: 'git diff HEAD~1 HEAD --name-only | cut -d/ -f1 | sort -u',
                             returnStdout: true
@@ -80,9 +80,7 @@ pipeline {
                     if (svc.isEmpty()) {
                         echo 'No relevent services were changed'
                     } else {
-
                         svc.each { docker_image_name ->
-
                             def docker_image = "${DOCKER_USER}/chat-app-${docker_image_name}:${DOCKER_TAG}"
 
                             stage("Trivy Security Scan - ${docker_image_name}") {
@@ -102,7 +100,6 @@ pipeline {
                                     usernameVariable: 'GIT_USERNAME',
                                     passwordVariable: 'GIT_TOKEN'
                                 )]) {
-
                                     sh """
                                     git config user.name "jenkins"
                                     git config user.email "jenkins@ci.com"
@@ -118,7 +115,6 @@ pipeline {
                                     """
                                 }
                             }
-
                         }
                     }
                 }
