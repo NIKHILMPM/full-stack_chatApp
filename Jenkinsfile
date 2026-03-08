@@ -20,7 +20,7 @@ pipeline {
         stage('check if manual build') {
             steps {
                 script {
-                    def isManual = currentBuild.rawBuild.getCause(hudson.model.Cause$UserIdCause)
+                    def isManual = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')
 
                     if (isManual) {
                         echo 'Manual build detected'
