@@ -1,36 +1,53 @@
+def svc = []
+
 pipeline {
-    agent any 
-    
+    agent any
+
     environment {
-        DOCKER_USER = "ramachandrampm"
+        DOCKER_USER = 'ramachandrampm'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
-        BRANCH_NAME = "dev"
-        SONAR_HOME = tool "sonar-tool"
-        
+        BRANCH_NAME = 'dev'
+        SONAR_HOME = tool 'sonar-tool'
     }
 
     stages {
-        
-        stage("Checkout Source Code") {
+        stage('Checkout Source Code') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Skip CI if requested') {
+        stage('check if manual build') {
             steps {
                 script {
-                    def commitMsg = sh(
-                        script: "git log -1 --pretty=%B",
-                        returnStdout: true
-                    ).trim()
-        
-                    echo "Latest commit message: ${commitMsg}"
-        
-                    if (commitMsg.contains('[ci skip]')) {
-                        echo "Skipping pipeline because commit message contains [skip ci]"
-                        currentBuild.result = 'NOT_BUILT'
-                        return
+                    def isManual = currentBuild.rawBuild.getCause(hudson.model.Cause$UserIdCause)
+
+                    if (isManual) {
+                        echo 'Manual build detected'
+                        svc = []   // manual build will allow later logic
+                    }
+                }
+            }
+        }
+
+        stage('checking if any changes were made in main code') {
+            steps {
+                script {
+
+                    if (svc.isEmpty()) {
+
+                        def services = sh(
+                            script: 'git diff HEAD~1 HEAD --name-only | cut -d/ -f1 | sort -u',
+                            returnStdout: true
+                        ).trim()
+
+                        svc = services.split('\n')
+
+                        if (!(svc.contains('frontend') || svc.contains('backend'))) {
+                            echo 'No changes detected in frontend or backend'
+                            currentBuild.result = 'NOT_BUILT'
+                            return
+                        }
                     }
                 }
             }
@@ -49,26 +66,19 @@ pipeline {
             }
         }
 
-        stage("OWASP Dependency Check") {
+        stage('OWASP Dependency Check') {
             steps {
-                echo "Running OWASP dependency check"
+                echo 'Running OWASP dependency check'
             }
         }
-        
-        stage("Detect Changed Services") {
+
+        stage('docker and argo cd configuration') {
             steps {
                 script {
-                    echo "Pipeline triggered"
+                    echo 'Pipeline triggered'
 
-                    services = sh(
-                        script: "git diff HEAD~1 HEAD --name-only | cut -d/ -f1 | sort -u",
-                        returnStdout: true
-                    ).trim()
-
-                    svc = services.split("\n")
-
-                    if (!(svc.contains("frontend") || svc.contains("backend"))) {
-                        echo "No relevant service directories changed"
+                    if (svc.isEmpty()) {
+                        echo 'No relevent services were changed'
                     } else {
 
                         svc.each { docker_image_name ->
@@ -76,9 +86,9 @@ pipeline {
                             def docker_image = "${DOCKER_USER}/chat-app-${docker_image_name}:${DOCKER_TAG}"
 
                             stage("Trivy Security Scan - ${docker_image_name}") {
-                                echo "Running Trivy security scan"
+                                echo 'Running Trivy security scan'
                             }
-                            
+
                             stage("Build and Push Docker Image - ${docker_image_name}") {
                                 withDockerRegistry(credentialsId: 'dockerhub-creds', url: '') {
                                     sh "docker build -t ${docker_image} ./${docker_image_name}"
@@ -87,7 +97,6 @@ pipeline {
                             }
 
                             stage("Update Kubernetes Manifest - ${docker_image_name}") {
-
                                 withCredentials([usernamePassword(
                                     credentialsId: 'github-creds',
                                     usernameVariable: 'GIT_USERNAME',
@@ -111,11 +120,9 @@ pipeline {
                             }
 
                         }
-
                     }
                 }
             }
         }
-        
     }
 }
