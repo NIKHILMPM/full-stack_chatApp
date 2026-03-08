@@ -5,6 +5,7 @@ pipeline {
         DOCKER_USER = "ramachandrampm"
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         BRANCH_NAME = "dev"
+        SONAR_HOME = tool "sonar-tool"
         
     }
 
@@ -35,9 +36,16 @@ pipeline {
             }
         }
 
-        stage("SonarQube Code Analysis") {
+        stage('SonarQube Code Analysis') {
             steps {
-                echo "Running SonarQube code analysis"
+                withSonarQubeEnv('Sonar-server') {
+                    sh """
+                    $SONAR_HOME/bin/sonar-scanner \
+                    -Dsonar.projectName=chat-app \
+                    -Dsonar.projectKey=chat-app \
+                    -Dsonar.sources=.
+                    """
+                }
             }
         }
 
