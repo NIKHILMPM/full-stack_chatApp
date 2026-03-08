@@ -66,9 +66,10 @@ pipeline {
             }
         }
 
-        stage('OWASP Dependency Check') {
+        stage("Pipeline Dependency Check") {
             steps {
-                echo 'Running OWASP dependency check'
+                dependencyCheck additionalArguments: '--scan . --format XML', odcInstallation: 'owasp-tool'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
 
