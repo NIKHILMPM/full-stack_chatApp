@@ -16,6 +16,25 @@ pipeline {
             }
         }
 
+        stage('Skip CI if requested') {
+            steps {
+                script {
+                    def commitMsg = sh(
+                        script: "git log -1 --pretty=%B",
+                        returnStdout: true
+                    ).trim()
+        
+                    echo "Latest commit message: ${commitMsg}"
+        
+                    if (commitMsg.contains('[skip ci]')) {
+                        echo "Skipping pipeline because commit message contains [skip ci]"
+                        currentBuild.result = 'NOT_BUILT'
+                        return
+                    }
+                }
+            }
+        }
+
         stage("SonarQube Code Analysis") {
             steps {
                 echo "Running SonarQube code analysis"
