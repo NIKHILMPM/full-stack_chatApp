@@ -41,9 +41,9 @@ pipeline {
                             returnStdout: true
                         ).trim()
 
-                        svc = services.split('\n') as List
+                        svc = services.split('\n').findAll { it == 'frontend' || it == 'backend' }
 
-                        if (!(svc.contains('frontend') || svc.contains('backend'))) {
+                        if (svc.isEmpty()) {
                             echo 'No changes detected in frontend or backend'
                             currentBuild.result = 'NOT_BUILT'
                             return
