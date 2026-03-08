@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ramachandrampm/chat-app-backend:2
+          image: ramachandrampm/chat-app-backend:3
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5001
