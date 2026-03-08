@@ -78,43 +78,51 @@ These roles prepare the server to run the **CI/CD pipeline and Kubernetes worklo
 
 # 4. Jenkins CI/CD Pipeline
 
-Jenkins automates the **build, security scanning, containerization, and deployment workflow**.
-
-The pipeline rebuilds **only the services that were modified**, improving efficiency.
+The Jenkins pipeline automates the **build, security scanning, containerization, and deployment** process.
+It is designed to rebuild and deploy **only the services that were modified**, improving pipeline efficiency.
 
 ### Pipeline Workflow
 
 1. **Checkout Source Code**
-   Jenkins pulls the latest version of the repository.
+   Jenkins pulls the latest version of the repository using the configured SCM.
 
 2. **Manual Build Detection**
-   If the pipeline is triggered manually, both `frontend` and `backend` services are included in the build.
-   Otherwise Jenkins detects which services changed in the latest commit.
+   The pipeline checks whether the build was triggered manually.
+
+   * If **manual**, both `frontend` and `backend` services are selected for the pipeline.
+   * If triggered by a **Git commit**, the pipeline determines which services were modified.
 
 3. **Change Detection**
-   Jenkins compares commits using `git diff` and selects only the modified services.
+   Jenkins compares the latest commit with the previous one using `git diff`.
+   It extracts the top-level folders (`frontend` or `backend`) that changed.
+   If no relevant changes are detected, the pipeline exits early to avoid unnecessary builds.
 
 4. **SonarQube Code Analysis**
-   Static code analysis is performed to detect bugs, vulnerabilities, and maintain code quality.
+   The project is scanned using **SonarQube** to analyze code quality, detect bugs, and identify security vulnerabilities.
 
 5. **OWASP Dependency Check**
-   Third-party dependencies are scanned for known vulnerabilities.
+   The pipeline scans project dependencies to detect known vulnerabilities in third-party libraries.
 
 6. **Trivy Security Scan**
-   Application directories are scanned for security issues before containerization.
+   Before building the container image, **Trivy** scans the service source code directory for potential security risks.
 
-7. **Docker Build and Push**
-   Docker images are built for modified services and pushed to **DockerHub** using the Jenkins build number as the tag.
+7. **Docker Image Build and Push**
+   For each modified service:
+
+   * A Docker image is built from the corresponding directory (`frontend` or `backend`).
+   * The image is tagged with the Jenkins **build number**.
+   * The image is pushed to **DockerHub**.
 
 8. **Update Kubernetes Manifests**
-   The pipeline updates the image tag inside the Kubernetes manifest files.
+   The pipeline updates the image tag inside the corresponding Kubernetes manifest file using `sed`.
 
-9. **Commit and Push Changes**
-   Jenkins commits the updated manifests and pushes them to the Git repository.
+9. **Commit and Push Manifest Changes**
+   Jenkins commits the updated manifest and pushes it to the Git repository.
 
-10. **Trigger GitOps Deployment**
-    ArgoCD detects the manifest change and deploys the updated application to Kubernetes.
+10. **GitOps Deployment via ArgoCD**
+    Since ArgoCD continuously monitors the repository, it detects the manifest change and automatically **synchronizes the Kubernetes cluster**, deploying the new container image.
 
+This pipeline creates an **efficient DevSecOps workflow**, ensuring that every change goes through **code analysis, vulnerability scanning, containerization, and automated Kubernetes deployment**.
 ---
 
 # 5. DevSecOps Security Scanning
