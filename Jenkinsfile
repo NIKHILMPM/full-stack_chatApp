@@ -38,7 +38,7 @@ pipeline {
 
         stage('SonarQube Code Analysis') {
             steps {
-                withSonarQubeEnv('Sonar-server') {
+                withSonarQubeEnv('sonar-server') {
                     sh """
                     $SONAR_HOME/bin/sonar-scanner \
                     -Dsonar.projectName=chat-app \
