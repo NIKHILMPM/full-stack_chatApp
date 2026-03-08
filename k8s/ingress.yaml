@@ -3,6 +3,9 @@ kind: Ingress
 metadata:
   name: chat-app-ingress
   namespace: chat-app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-cookie-path: / "/; SameSite=Lax"
 spec:
   ingressClassName: nginx
   rules:
