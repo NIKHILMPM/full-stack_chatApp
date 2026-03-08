@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image:ramachandrampm/chat-app-frontend:51
+          image:ramachandrampm/chat-app-frontend:54
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
