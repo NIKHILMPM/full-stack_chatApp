@@ -41,7 +41,7 @@ pipeline {
                     svc = services.split("\n")
 
                     if (!(svc.contains("frontend") || svc.contains("backend"))) {
-                        error("No relevant service directories changed")
+                        echo "No relevant service directories changed"
                     } else {
 
                         svc.each { docker_image_name ->
