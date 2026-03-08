@@ -41,7 +41,7 @@ pipeline {
                             returnStdout: true
                         ).trim()
 
-                        svc = services.split('\n')
+                        svc = services.split('\n') as List
 
                         if (!(svc.contains('frontend') || svc.contains('backend'))) {
                             echo 'No changes detected in frontend or backend'
@@ -85,7 +85,7 @@ pipeline {
 
                             stage("Trivy Security Scan - ${docker_image_name}") {
                                 echo 'Running Trivy security scan'
-                                sh "trivy fs --format table -o trivy-fs-report.txt ./${docker_image_name}"
+                                sh "trivy fs --format table -o trivy-${docker_image_name}-report.txt ./${docker_image_name}"
                             }
 
                             stage("Build and Push Docker Image - ${docker_image_name}") {
