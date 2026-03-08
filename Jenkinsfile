@@ -5,6 +5,7 @@ pipeline {
         DOCKER_USER = "ramachandrampm"
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         BRANCH_NAME = "dev"
+        
     }
 
     stages {
