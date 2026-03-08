@@ -26,7 +26,7 @@ pipeline {
         
                     echo "Latest commit message: ${commitMsg}"
         
-                    if (commitMsg.contains('[skip ci]')) {
+                    if (commitMsg.contains('[ci skip]')) {
                         echo "Skipping pipeline because commit message contains [skip ci]"
                         currentBuild.result = 'NOT_BUILT'
                         return
