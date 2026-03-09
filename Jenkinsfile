@@ -3,6 +3,7 @@ def svc = []
 pipeline {
     agent any
 
+    
     environment {
         DOCKER_USER = 'ramachandrampm'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
