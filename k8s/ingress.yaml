@@ -4,12 +4,13 @@ metadata:
   name: chat-app-ingress
   namespace: chat-app
   annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 
 spec:
   ingressClassName: nginx
   rules:
-  - host: chat.local
+  - host: chat-tws.com
     http:
       paths:
       - path: /
