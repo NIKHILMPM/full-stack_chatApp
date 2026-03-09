@@ -53,7 +53,7 @@ spec:
               value: "5001"
 
             - name: NODE_ENV
-              value: "production"
+              value: "development"
 
             - name: MONGODB_URI
               value: mongodb://root:admin@mongo:27017/chatApp?authSource=admin&retryWrites=true&w=majority
