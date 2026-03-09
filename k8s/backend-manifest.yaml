@@ -13,7 +13,6 @@ spec:
       targetPort: 5001
 
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,7 +30,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image:ramachandrampm/chat-app-backend:latest
+          image: ramachandrampm/chat-app-backend:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5001
@@ -53,12 +52,11 @@ spec:
               value: "5001"
 
             - name: NODE_ENV
-              value: "production"
+              value: "development"
 
             - name: MONGODB_URI
               value: mongodb://root:admin@mongo:27017/chatApp?authSource=admin&retryWrites=true&w=majority
 ---
-
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

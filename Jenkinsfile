@@ -69,7 +69,7 @@ pipeline {
 
         stage("Pipeline Dependency Check") {
             steps {
-                dependencyCheck additionalArguments: '--scan . --format XML', odcInstallation: 'owasp-tool'
+                dependencyCheck additionalArguments: '--scan . --format XML --format HTML', odcInstallation: 'owasp-tool'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
@@ -107,7 +107,7 @@ pipeline {
                                     git config user.name "jenkins"
                                     git config user.email "jenkins@ci.com"
 
-                                    sed -i "s|image:.*|image:${docker_image}|g" k8s/${docker_image_name}-manifest.yaml
+                                    sed -i "s|image:.*|image: ${docker_image}|g" k8s/${docker_image_name}-manifest.yaml
 
                                     git add k8s/${docker_image_name}-manifest.yaml
 
