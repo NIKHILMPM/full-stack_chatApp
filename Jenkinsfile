@@ -7,7 +7,7 @@ pipeline {
     environment {
         DOCKER_USER = 'ramachandrampm'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
-        BRANCH_NAME = 'dev'
+        BRANCH_NAME = 'main'
         SONAR_HOME = tool 'sonar-tool'
     }
 
