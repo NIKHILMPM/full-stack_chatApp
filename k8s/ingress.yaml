@@ -9,7 +9,8 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - http:
+  - host: chat.local
+    http:
       paths:
       - path: /
         pathType: Prefix
