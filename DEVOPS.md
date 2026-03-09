@@ -98,17 +98,17 @@ The Jenkins pipeline automates the **build, security scanning, containerization,
 
 It is designed to rebuild and deploy **only the services that were modified**, improving pipeline efficiency.
 
-### Jenkins Pipeline
+### Jenkins Pipeline (Manual Build Trigger that Builds Both Frontend and Backend Services)
 
 ![Jenkins Pipeline](public/project_images/jenkins-stages.jpeg)
 
 ### Pipeline Triggers
 
-Frontend Trigger
+### Frontend Trigger (Triggers when frontend code changes and builds and pushes only the frontend image to DockerHub)
 
 ![Frontend Pipeline Trigger](public/project_images/pipeline-frontend-trigger.png)
 
-Backend Trigger
+### Backend Trigger (Triggers when backend code changes and builds and pushes only the backend image to DockerHub)
 
 ![Backend Pipeline Trigger](public/project_images/pipeline-backend-trigger.png)
 
